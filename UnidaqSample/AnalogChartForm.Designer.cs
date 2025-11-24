@@ -48,7 +48,7 @@
             series1.Legend = "Legend1";
             series1.Name = "Series1";
             this.daqChart.Series.Add(series1);
-            this.daqChart.Size = new System.Drawing.Size(800, 450);
+            this.daqChart.Size = new System.Drawing.Size(548, 319);
             this.daqChart.TabIndex = 0;
             this.daqChart.Text = "chart1";
             // 
@@ -56,7 +56,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(548, 319);
             this.Controls.Add(this.daqChart);
             this.Name = "AnalogChartForm";
             this.Text = "AnalogChartForm-Show raw Data";

@@ -66,7 +66,7 @@ namespace UnidaqSample
         {
             if (DaqServices.Instance.Analog.State == AnalogState.Stopped)
             {
-                DaqServices.Instance.Analog.Start(10000, 100);
+                DaqServices.Instance.Analog.Start(50000, 200);
                 rtbStatus.AppendText("Analog Service Started." + "\r\n");
                 btnService.Text = "Stop";
               
