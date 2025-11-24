@@ -1,266 +1,315 @@
-# IcpDasDaqCore
-### High-Level Analog Input Framework for ICP DAS UniDAQ Devices
-**Global Access Architecture — True Singleton, Zero Conflicts**
+# ICP DAS DAQ Core Framework
 
-```
-┌──────────────────────────────────────────────┐
-│   ICP DAS DAQ – High-Level Input Framework   │
-│        Clean • Safe • Global • Reliable      │
-└──────────────────────────────────────────────┘
-```
+### High-Level, Production-Grade Analog Input Engine for ICP DAS UniDAQ Devices
+
+**Global Singleton Architecture — Multi-Channel, Filtered, Regression-Based Analog Acquisition**
 
 ---
 
 ## 🚀 Overview
 
-**IcpDasDaqCore** is a high-level, production-grade framework designed for analog input acquisition using ICP DAS DAQ devices through **UniDAQ.dll**.
+**ICP DAS DAQ Core Framework** is a high-performance, industrial-grade .NET framework designed to simplify analog data acquisition from ICP DAS boards (via **UniDAQ.dll**).
 
-The purpose of this project is to provide a **clean**, **safe**, and **powerful abstraction layer** that works seamlessly across:
+This framework wraps the low-level ICP DAS driver with a **clean, safe, global, synchronized abstraction layer** that works flawlessly across:
 
-* WinForms
-* WPF
-* Background Services
-* Industrial real-time systems
+* WinForms / WPF
+* Windows Services
+* Industrial data logging
+* Monitoring dashboards
+* Real-time measurement pipelines
 
-A key architectural highlight is the **Global Access Singleton Design** (`DaqServices`), ensuring:
+A key architectural choice is the **Global Singleton Access Point (`DaqServices`)**:
 
-* No duplicate initialization
+* No redundant objects
 * No hardware conflicts
-* No additional DAQ objects ever created
-* Full data consistency across the entire application
+* No duplicate initialization
+* All classes, forms, and UI components share the same DAQ engine
 
 ---
 
 ## ⭐ Key Features
 
-### 1️⃣ Global Access Architecture (`DaqServices`)
+### ✔ Global Singleton Architecture
 
-The entire DAQ system is exposed through a *single* global instance:
+A single access point:
 
 ```csharp
 DaqServices.Instance
 ```
 
-This singleton provides synchronized access to:
+Gives your entire application unified access to:
 
-* `AnalogInputManager`
-* `SharedDataCache`
-* `DaqSystemManager`
-* System state
-* Events
-* Last known data
-
-No extra objects. No re-initialization. No risks.
+* AnalogInputManager
+* SharedDataCache
+* DaqSystemManager
+* Logging
+* Driver state
+* Multi-channel data events
 
 ---
 
-### 2️⃣ High-Performance Analog Input Manager
+### ✔ High-Performance Analog Input Engine
 
 `AnalogInputManager` provides:
 
-* Per-channel configuration (range, offset, regression)
-* Moving-average digital filtering
-* Polynomial regression (y = a0 + a1x + a2x² + …)
-* Parallel data processing
-* Matrix-based multi-channel output
-* Auto-restart logic
-* Built-in error handling
-* Per-sample / per-channel helper access
+* Multi-channel scanning
+* Moving-average filtering
+* Polynomial regression (any order)
+* Noise reduction
+* Zero offset adjustment
+* Parallel processing
+* Matrix-based output (`float[sample, channel]`)
+* Auto-retry with safe restart
+* Per-channel or multi-channel event modes
+* Horner-based polynomial evaluation (fast)
 
 ---
 
-### 3️⃣ Multi-Channel Matrix Output
+### ✔ Shared Data Cache
 
-All processed and raw data is delivered as:
+`SharedDataCache<T>` (via `DaqServices.AnalogData`) gives:
 
-```
-DataMatrix[sample, channel]
-RawDataMatrix[sample, channel]
-```
-
-Examples:
-
-```csharp
-var ch = e.GetChannelData("Sensor1"); // processed + raw data
-float value = e.GetValue(0, "Sensor2");
-```
-
----
-
-### 4️⃣ Shared Data Cache
-
-`SharedDataCache` provides:
-
-* The latest multi-channel data block
+* The **latest multi-channel block**
 * Thread-safe access
-* Zero duplication of memory
-* A global `DataUpdated` event
-* No need to subscribe to AnalogInputManager everywhere
+* Global event `DataUpdated`
+* Zero redundant subscriptions
+* Zero memory duplication
 
 ---
 
-### 5️⃣ Automatic Device Detection
+### ✔ Automatic Device Detection
 
 `DaqSystemManager` handles:
 
-* Safe UniDAQ initialization
-* Hardware detection
-* Controlled, conflict-free initialization using `SemaphoreSlim`
-* Driver state events
-* Error events
-* Creation of `AnalogInputManager` only when a board exists
+* Driver initialization (once only — safe with SemaphoreSlim)
+* Board scanning
+* Model detection
+* Auto-creation of `AnalogInputManager`
+* Event bridging to `DaqServices`
 
 ---
 
-### 6️⃣ Industrial-Grade Reliability
+### ✔ Industrial Reliability
 
-Built with continuous operation in mind:
-
-* Retry mechanisms
-* Auto-restart capabilities
-* Graceful shutdown
-* No deadlocks
-* Safe cancellation tokens
-* Parallel pipeline optimization
+* Auto-restart on failures
+* Retry limit protection
+* Cancellation-safe loops
+* Deadlock-free design
+* Hardware-safe initialization
+* Shared driver instance (ref-counting)
 
 ---
 
-## 🧩 Project Architecture
+# 🧩 Architecture
 
 ```
-IcpDasDaqCore
+ICP DAS DAQ Core Framework
 │
-├─ DaqServices          // Global singleton – main entry point
+├── DaqServices (Singleton)
+│     ├── Global Logging
+│     ├── SharedDataCache<AnalogMultiChannelDataEventArgs>
+│     └── DaqSystemManager
 │
-├─ DaqSystemManager     // UniDAQ device detection & driver initialization
+├── DaqSystemManager
+│     ├── UniDAQ Driver Initialization (global)
+│     ├── Board Detection
+│     └── Analog Controller Factory
 │
-├─ AnalogInputManager   // Channels, filtering, regression, engine
-│
-└─ SharedDataCache      // Latest data block shared across app
+└── AnalogInputManager
+      ├── Channel Configuration
+      ├── Moving Avg Filter
+      ├── Polynomial Regression
+      ├── Multi-Channel Engine
+      ├── Error & Retry Pipeline
+      └── AI Scan Loop
 ```
-
-This layered architecture ensures safety, modularity, and clean separation.
 
 ---
 
-## 📘 Usage Example
+# 📁 File Structure
 
-### 1️⃣ System Initialization
+```
+/src
+ ├── AnalogInputManager.cs        // Multi-channel analog engine
+ ├── DaqServices.cs               // App-wide singleton & glue layer
+ ├── DaqSystemManager.cs          // UniDAQ driver / board detection
+ └── SharedDataCache.cs           // Lightweight global data cache
+```
+
+---
+
+
+# 📘 Usage Example (Main Form Initialization)
 
 ```csharp
 private async void MainForm_Load(object sender, EventArgs e)
 {
+    rtbStatus.Multiline = true;
+
+    DaqServices.Instance.LogInfo += (s, msg) =>
+        rtbStatus.AppendText(msg + "\r\n");
+
     await DaqServices.Instance.InitializeSystemAsync();
 
-    // Add channels
-    DaqServices.Instance.Analog.AddChannel(
-        "Sensor1", 0,
-        VoltageRange.Bipolar_10V,
-        movingAverageWindow: 5000,
-        regressionCoeffs: new[] { 10.0, 0.5 },
-        zeroOffset: 0
-    );
+    if (DaqServices.Instance.Analog != null)
+    {
+        var analog = DaqServices.Instance.Analog;
 
-    DaqServices.Instance.Analog.AddChannel(
-        "Sensor2", 1,
-        VoltageRange.Bipolar_5V,
-        movingAverageWindow: 1000
-    );
+        analog.CardType = 0;
+        analog.UseMultiChannelOutput = true;
+        analog.UseParallel = false;
+        analog.RetryLimit = 5;
+
+        double[] reg1 = { 10.0, 0.5 };
+        double[] reg2 = { 1.0, 0.5, 0.3, 0.2, 0.1 };
+        int window = 5000;
+
+        analog.AddChannel("Sensor1", 0, VoltageRange.Bipolar_10V, window, reg1);
+        analog.AddChannel("Sensor2", 1, VoltageRange.Bipolar_10V, window, reg2);
+        analog.AddChannel("Sensor3", 3, VoltageRange.Bipolar_10V);
+        analog.AddChannel("Sensor4", 5, VoltageRange.Bipolar_10V);
+        analog.AddChannel("Sensor5", 6, VoltageRange.Bipolar_10V);
+        analog.AddChannel("Sensor6", 7, VoltageRange.Bipolar_10V);
+    }
 }
 ```
 
 ---
 
-### 2️⃣ Start Acquisition
+# ▶ Start Acquisition
 
 ```csharp
 DaqServices.Instance.Analog.Start(
     samplingRate: 10000,
-    dataCount: 100        // samples per block
+    dataCount: 100
 );
 ```
 
 ---
 
-### 3️⃣ Receive Multi-Channel Data
+# 📊 Multi-Form Data Access Example
+
+Every form can subscribe globally:
 
 ```csharp
-DaqServices.Instance.Analog.MultiChannelDataReceived += (s, e) =>
+DaqServices.Instance.AnalogData.DataUpdated += OnAnalogDataUpdated;
+```
+
+Thread-safe update:
+
+```csharp
+private void OnAnalogDataUpdated(object s, AnalogMultiChannelDataEventArgs e)
 {
-    // processed block
-    var s1 = e.GetChannelData("Sensor1").DataMatrix;
+    if (InvokeRequired)
+        BeginInvoke(new Action(() => UpdateChartData(e)));
+    else
+        UpdateChartData(e);
+}
+```
 
-    // single extracted value
-    float v = e.GetValue(0, "Sensor1");
+Matrix-based chart update:
 
-    // full multi-channel matrix
-    float[,] matrix = e.DataMatrix;
-};
+```csharp
+private void UpdateChartData(AnalogMultiChannelDataEventArgs data)
+{
+    daqChart.SuspendLayout();
+
+    for (int i = 0; i < data.Channels.Count; i++)
+    {
+        string name = data.Channels[i].Name;
+
+        float sum = 0;
+        int count = data.DataMatrix.GetLength(0);
+
+        for (int k = 0; k < count; k++)
+            sum += data.RawDataMatrix[k, i];
+
+        float avg = sum / count;
+
+        daqChart.Series[name].Points.AddY(avg);
+
+        if (daqChart.Series[name].Points.Count > MAX_HISTORY)
+            daqChart.Series[name].Points.RemoveAt(0);
+    }
+
+    daqChart.ResumeLayout();
+}
 ```
 
 ---
 
-### 4️⃣ Global Access from Any Form / Class
+# 🔧 API Reference (Condensed)
+
+## DaqServices (Singleton)
 
 ```csharp
-private void ChartForm_Load(object sender, EventArgs e)
-{
-    DaqServices.Instance.AnalogData.DataUpdated += OnData;
-}
-
-private void OnData(object sender, AnalogMultiChannelDataEventArgs e)
-{
-    var ch = e.GetChannelData("Sensor1");
-    float latest = ch.DataMatrix.Last();
-    chart.AddPoint(latest);
-}
+public static DaqServices Instance { get; }
+public AnalogInputManager Analog { get; }
+public SharedDataCache<AnalogMultiChannelDataEventArgs> AnalogData { get; }
+public Task InitializeSystemAsync();
+public event EventHandler<string> LogInfo;
+public event EventHandler<string> LogError;
 ```
 
 ---
 
-### 5️⃣ Graceful Shutdown
+## DaqSystemManager
 
 ```csharp
-private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-{
-    DaqServices.Instance.Dispose();
-}
+public Task<bool> InitializeDriverAsync();
+public void CreateAnalogController(ushort boardNo, bool isHighGain);
+public event EventHandler<BoardDetectedEventArgs> BoardDetected;
+public event EventHandler<DaqErrorEventArgs> ErrorOccurred;
 ```
 
 ---
 
-## 🏆 Advantages of Global Singleton Architecture
+## AnalogInputManager
 
-* Zero redundant objects
-* Zero double initialization
-* Zero configuration duplication
-* Hardware conflict-free
-* Consistent data across app
-* Thread-synchronized
-* Perfect for large industrial applications
-* UI and logic fully decoupled
+```csharp
+public void AddChannel(string name, int index, VoltageRange range,
+                       int movingAvg = 0, double[] regression = null, float zero = 0);
 
-Especially suitable for DAQ systems where duplication can create hardware contention.
+public void Start(float samplingRate, uint dataCount);
+public void Stop();
+
+public event EventHandler<AnalogMultiChannelDataEventArgs> MultiChannelDataReceived;
+public event EventHandler<AnalogDataEventArgs> DataReceived;
+public event EventHandler<AnalogErrorEventArgs> ErrorOccurred;
+```
 
 ---
 
-## 🏭 Use Cases
+# ⚠ Error Handling
+
+Errors propagate via:
+
+### • `AnalogErrorEventArgs`
+
+### • `DaqErrorEventArgs`
+
+### • `RetryLimit` + auto-restart pipeline
+
+UniDAQ error codes are mapped internally:
+
+```csharp
+{0: "No Error", 1: "Open Driver Error", 6: "No Board Found", ...}
+```
+
+---
+
+# 🏭 Use Cases
 
 * Industrial monitoring
-* Data logging systems
+* Sensor fusion
+* High-speed multi-channel acquisition
 * Vibration analysis
-* Power / energy measurement
-* Temperature / pressure systems
-* CNC / servo motion monitoring
-* Automated test platforms
-* IoT industrial gateways
+* Power/energy measurement
+* Automated test stands
+* IoT gateways
 
 ---
 
-## 📄 License
+# 📄 License
 
-**Recommended:** Apache License 2.0
-(Attribution protection + business-friendly)
-
----
-
+Recommended: **Apache License 2.0** (safe for open-source & commercial use)
