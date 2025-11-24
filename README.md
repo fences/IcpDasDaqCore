@@ -1,128 +1,153 @@
-#IcpDasDaqCore
-High‑Level Analog Input Framework for ICP DAS UniDAQ Devices
-with Global Access Architecture (Single Instance / No Extra Objects)
-Overview
-IcpDasDaqCore is a high‑level, production‑grade framework designed for analog input acquisition using ICP DAS DAQ cards via UniDAQ.dll.
+# IcpDasDaqCore
+### High-Level Analog Input Framework for ICP DAS UniDAQ Devices
+**Global Access Architecture — True Singleton, Zero Conflicts**
 
-The goal of this project is to provide a clean, safe, and powerful abstraction layer over UniDAQ that can be used easily across any application (WinForms, WPF, Services, and industrial systems).
+```
+┌──────────────────────────────────────────────┐
+│   ICP DAS DAQ – High-Level Input Framework   │
+│        Clean • Safe • Global • Reliable      │
+└──────────────────────────────────────────────┘
+```
 
-A central architectural highlight of this framework is the global access design based on a true Singleton service: DaqServices.
+---
 
-This ensures that:
+## 🚀 Overview
 
-All forms, classes, UI components, and background workers
-All real‑time monitoring windows
-All analysis modules
-can access the same active DAQ system without creating any additional objects.
+**IcpDasDaqCore** is a high-level, production-grade framework designed for analog input acquisition using ICP DAS DAQ devices through **UniDAQ.dll**.
 
-This guarantees:
+The purpose of this project is to provide a **clean**, **safe**, and **powerful abstraction layer** that works seamlessly across:
 
-No duplicate initialization
-No hardware conflicts
-No memory leaks
-Complete consistency across the entire software
-Key Features
-1. Global Access Architecture (DaqServices)
-The entire DAQ system is accessible through:
+* WinForms
+* WPF
+* Background Services
+* Industrial real-time systems
 
+A key architectural highlight is the **Global Access Singleton Design** (`DaqServices`), ensuring:
 
-content_copy
-csharp
+* No duplicate initialization
+* No hardware conflicts
+* No additional DAQ objects ever created
+* Full data consistency across the entire application
+
+---
+
+## ⭐ Key Features
+
+### 1️⃣ Global Access Architecture (`DaqServices`)
+
+The entire DAQ system is exposed through a *single* global instance:
+
+```csharp
 DaqServices.Instance
-This single instance provides shared, synchronized, and safe access to:
+```
 
-AnalogInputManager
-SharedDataCache
-DaqSystemManager
-System state
-Events
-Last known data
-You never create additional instances.
+This singleton provides synchronized access to:
 
-You never reconfigure channels twice.
+* `AnalogInputManager`
+* `SharedDataCache`
+* `DaqSystemManager`
+* System state
+* Events
+* Last known data
 
-Everything is globally available everywhere.
+No extra objects. No re-initialization. No risks.
 
-2. High‑Performance Analog Input Manager
-AnalogInputManager provides:
+---
 
-Channel configuration (range, regression, zero offset)
-Moving‑Average filter per channel
-Polynomial regression (y = a0 + a1x + a2x² + …)
-Parallel processing for large data sets
-Matrix‑based multi‑channel output
-Automatic error handling and restart logic
-Per‑sample and per‑channel access helpers
-3. Multi‑Channel Matrix Output
-All data from all channels is delivered as matrices:
+### 2️⃣ High-Performance Analog Input Manager
 
+`AnalogInputManager` provides:
+
+* Per-channel configuration (range, offset, regression)
+* Moving-average digital filtering
+* Polynomial regression (y = a0 + a1x + a2x² + …)
+* Parallel data processing
+* Matrix-based multi-channel output
+* Auto-restart logic
+* Built-in error handling
+* Per-sample / per-channel helper access
+
+---
+
+### 3️⃣ Multi-Channel Matrix Output
+
+All processed and raw data is delivered as:
+
+```
 DataMatrix[sample, channel]
 RawDataMatrix[sample, channel]
-You can easily extract:
+```
 
+Examples:
 
-content_copy
-csharp
-var ch = e.GetChannelData("Sensor1");     // Processed + Raw
-float v = e.GetValue(0, "Sensor2");       // Single value
-4. Shared Data Cache
-SharedDataCache stores the latest multi‑channel data block and makes it immediately available to the entire application:
+```csharp
+var ch = e.GetChannelData("Sensor1"); // processed + raw data
+float value = e.GetValue(0, "Sensor2");
+```
 
-Thread‑safe
-Instant access
-Broadcasts DataUpdated event
-Zero additional memory overhead
-No need to subscribe to AnalogManager everywhere
-5. Automatic Device Detection
-DaqSystemManager:
+---
 
-Initializes UniDAQ safely
-Detects installed ICP DAS cards
-Creates AnalogInputManager only when hardware exists
-Sends status and error events
-Prevents double initialization (SemaphoreSlim controlled)
-6. Industrial‑Grade Reliability
-Includes:
+### 4️⃣ Shared Data Cache
 
-Retry logic
-Auto restart
-Graceful stop
-No deadlocks
-Safe cancellation tokens
-Parallel pipeline optimization
-Project Architecture
+`SharedDataCache` provides:
+
+* The latest multi-channel data block
+* Thread-safe access
+* Zero duplication of memory
+* A global `DataUpdated` event
+* No need to subscribe to AnalogInputManager everywhere
+
+---
+
+### 5️⃣ Automatic Device Detection
+
+`DaqSystemManager` handles:
+
+* Safe UniDAQ initialization
+* Hardware detection
+* Controlled, conflict-free initialization using `SemaphoreSlim`
+* Driver state events
+* Error events
+* Creation of `AnalogInputManager` only when a board exists
+
+---
+
+### 6️⃣ Industrial-Grade Reliability
+
+Built with continuous operation in mind:
+
+* Retry mechanisms
+* Auto-restart capabilities
+* Graceful shutdown
+* No deadlocks
+* Safe cancellation tokens
+* Parallel pipeline optimization
+
+---
+
+## 🧩 Project Architecture
+
+```
 IcpDasDaqCore
-
 │
-
-├─ DaqServices // Main global access point (Singleton)
-
+├─ DaqServices          // Global singleton – main entry point
 │
-
-├─ DaqSystemManager // Driver initialization, board detection
-
+├─ DaqSystemManager     // UniDAQ device detection & driver initialization
 │
-
-├─ AnalogInputManager // Channel config, filtering, regression, data engine
-
+├─ AnalogInputManager   // Channels, filtering, regression, engine
 │
+└─ SharedDataCache      // Latest data block shared across app
+```
 
-└─ SharedDataCache // Last data block, shared across entire app
+This layered architecture ensures safety, modularity, and clean separation.
 
-This layered architecture ensures safety, modularity, and clean decoupling.
+---
 
-Usage Example
-Below is a complete example covering:
+## 📘 Usage Example
 
-System initialization
-Adding channels
-Starting acquisition
-Receiving multi‑channel data
-Access from any other form/class
-1. Initialize System (e.g., MainForm Load)
+### 1️⃣ System Initialization
 
-content_copy
-csharp
+```csharp
 private async void MainForm_Load(object sender, EventArgs e)
 {
     await DaqServices.Instance.InitializeSystemAsync();
@@ -142,35 +167,42 @@ private async void MainForm_Load(object sender, EventArgs e)
         movingAverageWindow: 1000
     );
 }
-2. Start Acquisition
+```
 
-content_copy
-csharp
+---
+
+### 2️⃣ Start Acquisition
+
+```csharp
 DaqServices.Instance.Analog.Start(
     samplingRate: 10000,
-    dataCount: 100          // Samples per block
+    dataCount: 100        // samples per block
 );
-3. Receive Multi‑Channel Data
+```
 
-content_copy
-csharp
+---
+
+### 3️⃣ Receive Multi-Channel Data
+
+```csharp
 DaqServices.Instance.Analog.MultiChannelDataReceived += (s, e) =>
 {
-    // Example: get processed data of Sensor1
+    // processed block
     var s1 = e.GetChannelData("Sensor1").DataMatrix;
 
-    // Example: get single value
+    // single extracted value
     float v = e.GetValue(0, "Sensor1");
 
-    // Example: work with whole matrix
-    float[,] m = e.DataMatrix;
+    // full multi-channel matrix
+    float[,] matrix = e.DataMatrix;
 };
-4. Global Access in Any Other Form or Class
-No references, no new objects — just use the singleton.
+```
 
+---
 
-content_copy
-csharp
+### 4️⃣ Global Access from Any Form / Class
+
+```csharp
 private void ChartForm_Load(object sender, EventArgs e)
 {
     DaqServices.Instance.AnalogData.DataUpdated += OnData;
@@ -180,55 +212,55 @@ private void OnData(object sender, AnalogMultiChannelDataEventArgs e)
 {
     var ch = e.GetChannelData("Sensor1");
     float latest = ch.DataMatrix.Last();
-    chart1.AddPoint(latest);
+    chart.AddPoint(latest);
 }
-5. Graceful Shutdown
+```
 
-content_copy
-csharp
+---
+
+### 5️⃣ Graceful Shutdown
+
+```csharp
 private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
 {
     DaqServices.Instance.Dispose();
 }
-Advantages of the Global Singleton Architecture
-Zero redundant objects
-Zero repeated initialization
-Zero configuration duplication
-Data is always consistent
-Safe and thread‑synchronised
-Clean codebase for large‑scale industrial apps
-Highly suitable for multi‑form WinForms / WPF projects
-UI and Logic remain completely decoupled
-This architecture is specifically tailored for DAQ systems where duplication can cause hardware conflicts.
+```
 
-Use Cases
-Industrial monitoring
-Data logging
-Machine vibration analysis
-Power measurement
-Temperature/pressure sensor systems
-CNC and motion monitoring
-Automated test systems
-IoT industrial gateways
-License
-Recommended: Apache License 2.0
+---
 
-(Preserves your name and includes attribution + strong legal protection)
+## 🏆 Advantages of Global Singleton Architecture
 
-Need a Logo, NuGet packaging, or Extended Documentation?
-Tell me and I will generate:
+* Zero redundant objects
+* Zero double initialization
+* Zero configuration duplication
+* Hardware conflict-free
+* Consistent data across app
+* Thread-synchronized
+* Perfect for large industrial applications
+* UI and logic fully decoupled
 
-A SVG/PNG logo
-A full PDF documentation
-NuGet publish description
-UML diagrams (class + sequence)
-GIF demo for GitHub
-If you’d like, I can now generate:
+Especially suitable for DAQ systems where duplication can create hardware contention.
 
-✅ Full English + Persian dual‑language README
+---
 
-✅ Badge set (Build, License, .NET version)
+## 🏭 Use Cases
 
-✅ Professional GitHub description section
+* Industrial monitoring
+* Data logging systems
+* Vibration analysis
+* Power / energy measurement
+* Temperature / pressure systems
+* CNC / servo motion monitoring
+* Automated test platforms
+* IoT industrial gateways
 
-Just tell me.
+---
+
+## 📄 License
+
+**Recommended:** Apache License 2.0
+(Attribution protection + business-friendly)
+
+---
+
