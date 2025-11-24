@@ -4,6 +4,8 @@
 
 **Global Singleton Architecture — Multi-Channel, Filtered, Regression-Based Analog Acquisition**
 
+https://github.com/fences/IcpDasDaqCore/blob/master/icpdas.mp4
+
 ---
 
 ## 🚀 Overview
